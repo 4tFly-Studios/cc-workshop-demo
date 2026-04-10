@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Brief</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-alt: #22263a;
+      --border: #2e3248;
+      --accent: #6c63ff;
+      --accent-soft: #6c63ff22;
+      --text: #e8eaf0;
+      --muted: #7a7f9a;
+      --success: #3ecf8e;
+      --radius: 14px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-bottom: 4px;
+    }
+
+    .header .label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .header h1 {
+      font-size: clamp(28px, 5vw, 38px);
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .header .date {
+      font-size: 15px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    /* Quote */
+    .quote-text {
+      font-size: 18px;
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--text);
+      font-style: italic;
+    }
+
+    .quote-text::before { content: '\201C'; }
+    .quote-text::after  { content: '\201D'; }
+
+    .quote-author {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .quote-author::before { content: '— '; }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 14px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* To-do */
+    .todo-input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .todo-input {
+      flex: 1;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .todo-input::placeholder { color: var(--muted); }
+    .todo-input:focus { border-color: var(--accent); }
+
+    .add-btn {
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .add-btn:hover { opacity: 0.88; }
+    .add-btn:active { transform: scale(0.97); }
+
+    .todo-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: opacity 0.2s;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .todo-item.done { opacity: 0.45; }
+
+    .todo-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .todo-check:hover { border-color: var(--success); }
+
+    .todo-item.done .todo-check {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .todo-check svg { display: none; }
+    .todo-item.done .todo-check svg { display: block; }
+
+    .todo-text {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.4;
+      color: var(--text);
+      transition: color 0.2s;
+    }
+
+    .todo-item.done .todo-text {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .todo-delete {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-size: 16px;
+      line-height: 1;
+      transition: color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .todo-delete:hover { color: #ff5f72; }
+
+    .todo-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 16px 0 4px;
+    }
+
+    .todo-stats {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+    }
+
+    /* Fun fact */
+    .fact-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    .fact-badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    /* Divider */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 14px 0 2px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="label">Daily Brief</span>
+    <h1>Good <span id="greeting"></span></h1>
+    <p class="date" id="date-display"></p>
+  </div>
+
+  <!-- Quote -->
+  <div class="card">
+    <p class="card-label">Motivation</p>
+    <p class="quote-text" id="quote-text"></p>
+    <p class="quote-author" id="quote-author"></p>
+    <button class="refresh-btn" onclick="setQuote()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      New quote
+    </button>
+  </div>
+
+  <!-- To-do -->
+  <div class="card">
+    <p class="card-label">To-Do</p>
+    <div class="todo-input-row">
+      <input class="todo-input" id="todo-input" type="text" placeholder="Add a task…" maxlength="120" />
+      <button class="add-btn" onclick="addTodo()">Add</button>
+    </div>
+    <ul class="todo-list" id="todo-list"></ul>
+    <p class="todo-empty" id="todo-empty">No tasks yet. Add one above!</p>
+    <p class="todo-stats" id="todo-stats"></p>
+  </div>
+
+  <!-- Fun Fact -->
+  <div class="card">
+    <span class="fact-badge">Fun Fact</span>
+    <p class="fact-text" id="fact-text"></p>
+    <hr />
+    <button class="refresh-btn" onclick="setFact()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      New fact
+    </button>
+  </div>
+
+  <p class="footer">Refreshes each day &mdash; todos saved in your browser.</p>
+</div>
+
+<script>
+  // ── Date & greeting ──────────────────────────────────────────────────
+  (function () {
+    const now = new Date();
+    const h = now.getHours();
+    document.getElementById('greeting').textContent =
+      h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening';
+    document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  })();
+
+  // ── Quotes ────────────────────────────────────────────────────────────
+  const quotes = [
+    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+    { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
+    { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+    { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+    { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
+    { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+    { text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
+    { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { text: "Hard work beats talent when talent doesn't work hard.", author: "Tim Notke" },
+    { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+    { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+    { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+  ];
+
+  let lastQuoteIdx = -1;
+  function setQuote() {
+    let idx;
+    do { idx = Math.floor(Math.random() * quotes.length); } while (idx === lastQuoteIdx);
+    lastQuoteIdx = idx;
+    document.getElementById('quote-text').textContent = quotes[idx].text;
+    document.getElementById('quote-author').textContent = quotes[idx].author;
+  }
+  setQuote();
+
+  // ── Fun facts ─────────────────────────────────────────────────────────
+  const facts = [
+    "Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that was still perfectly edible.",
+    "A group of flamingos is called a flamboyance.",
+    "Octopuses have three hearts, blue blood, and can taste with their suckers.",
+    "The shortest war in history lasted 38–45 minutes — the Anglo-Zanzibar War of 1896.",
+    "Cleopatra lived closer in time to the Moon landing than to the construction of the Great Pyramid.",
+    "A day on Venus is longer than a year on Venus — it rotates so slowly that it completes an orbit before one full spin.",
+    "Bananas are berries, but strawberries are not.",
+    "There are more possible iterations of a game of chess than there are atoms in the observable universe.",
+    "The Eiffel Tower can be 15 cm taller in summer due to thermal expansion of the iron.",
+    "Wombat droppings are cube-shaped — the only known animal to produce cube-shaped poop.",
+    "A bolt of lightning is five times hotter than the surface of the Sun.",
+    "Crows can recognise and remember human faces, and will hold grudges against people who have wronged them.",
+    "The human body contains enough iron to make a nail about 3 inches long.",
+    "Sharks are older than trees — they've existed for over 450 million years.",
+    "The fingerprints of a koala are so similar to human fingerprints they have fooled crime scene investigators.",
+    "Oxford University is older than the Aztec Empire.",
+    "A jiffy is an actual unit of time: 1/100th of a second.",
+    "Sea otters hold hands while sleeping so they don't drift apart.",
+  ];
+
+  let lastFactIdx = -1;
+  function setFact() {
+    let idx;
+    do { idx = Math.floor(Math.random() * facts.length); } while (idx === lastFactIdx);
+    lastFactIdx = idx;
+    document.getElementById('fact-text').textContent = facts[idx];
+  }
+  setFact();
+
+  // ── To-do list ────────────────────────────────────────────────────────
+  const STORAGE_KEY = 'daily-brief-todos';
+  let todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+  function saveTodos() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  }
+
+  function renderTodos() {
+    const list = document.getElementById('todo-list');
+    const empty = document.getElementById('todo-empty');
+    const stats = document.getElementById('todo-stats');
+    list.innerHTML = '';
+
+    if (todos.length === 0) {
+      empty.style.display = 'block';
+      stats.textContent = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    todos.forEach((todo, i) => {
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (todo.done ? ' done' : '');
+
+      li.innerHTML = `
+        <button class="todo-check" onclick="toggleTodo(${i})" title="${todo.done ? 'Mark undone' : 'Mark done'}">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2 6 5 9 10 3"/>
+          </svg>
+        </button>
+        <span class="todo-text">${escHtml(todo.text)}</span>
+        <button class="todo-delete" onclick="deleteTodo(${i})" title="Delete">&#x2715;</button>
+      `;
+      list.appendChild(li);
+    });
+
+    const done = todos.filter(t => t.done).length;
+    stats.textContent = `${done} of ${todos.length} completed`;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function addTodo() {
+    const input = document.getElementById('todo-input');
+    const text = input.value.trim();
+    if (!text) return;
+    todos.push({ text, done: false });
+    saveTodos();
+    renderTodos();
+    input.value = '';
+    input.focus();
+  }
+
+  function toggleTodo(i) {
+    todos[i].done = !todos[i].done;
+    saveTodos();
+    renderTodos();
+  }
+
+  function deleteTodo(i) {
+    todos.splice(i, 1);
+    saveTodos();
+    renderTodos();
+  }
+
+  document.getElementById('todo-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTodo();
+  });
+
+  renderTodos();
+</script>
+</body>
+</html>
